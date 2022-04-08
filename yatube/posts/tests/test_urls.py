@@ -6,22 +6,19 @@ User = get_user_model()
 
 
 class TaskURLTests(TestCase):
+    """Класс тестирвоания страниц."""
+
     @classmethod
     def setUpClass(cls):
         cls.user = User.objects.create_user(username='neo')
         cls.author = User.objects.create_user(username='auth')
         super().setUpClass()
-        cls.group = Group.objects.create(
-            title='test_group',
-            slug='test_slug',
-            description='test_description'
-
-        )
-        cls.post = Post.objects.create(
-            text='test_text',
-            author=cls.author,
-            group=cls.group
-        )
+        cls.group = Group.objects.create(title='test_group',
+                                         slug='test_slug',
+                                         description='test_description')
+        cls.post = Post.objects.create(text='test_text',
+                                       author=cls.author,
+                                       group=cls.group)
 
     def setUp(self):
         self.guest_client = Client()
@@ -54,16 +51,14 @@ class TaskURLTests(TestCase):
         пользователя на страницу логина.
         """
         response = self.guest_client.get('/posts/1/edit/', follow=True)
-        self.assertRedirects(
-            response, '/auth/login/?next=/posts/1/edit/')
+        self.assertRedirects(response, '/auth/login/?next=/posts/1/edit/')
 
     def test_create_url_redirect_anonymous_on_admin_login(self):
         """Страница по адресу /create/ перенаправит анонимного
         пользователя на страницу логина.
         """
         response = self.guest_client.get('/create/', follow=True)
-        self.assertRedirects(
-            response, '/auth/login/?next=/create/')
+        self.assertRedirects(response, '/auth/login/?next=/create/')
 
     def test_profile_test_slug_url_exists_at_desired_location(self):
         """Страница  '/unexisting_page/' доступна любому пользователю."""
@@ -72,14 +67,15 @@ class TaskURLTests(TestCase):
 
     def test_urls_correct_template(self):
         templates_url_name = {
-            'posts/index.html': '/',
-            'posts/group_list.html': '/group/test_slug/',
-            'posts/profile.html': '/profile/neo/',
-            'posts/post_detail.html': '/posts/1/',
-            'posts/post_create.html': '/posts/1/edit/',
-            'posts/post_create.html': '/create/', }
+            '/': 'posts/index.html',
+            '/group/test_slug/': 'posts/group_list.html',
+            '/profile/neo/': 'posts/profile.html',
+            '/posts/1/': 'posts/post_detail.html',
+            '/posts/1/edit/': 'posts/post_create.html',
+            '/create/': 'posts/post_create.html',
+        }
 
-        for template, address in templates_url_name.items():
-            with self.subTest(address=address):
-                response = self.authorized_client.get(address)
+        for addres, template, in templates_url_name.items():
+            with self.subTest(addres=addres):
+                response = self.authorized_client.get(addres)
                 self.assertTemplateUsed(response, template)

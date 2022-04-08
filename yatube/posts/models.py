@@ -20,19 +20,16 @@ class Post(models.Model):
         null=True,
         on_delete=models.SET_NULL,
         verbose_name='Группа',
-        help_text='Группа к которой будет относится пост'
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='posts',
-        verbose_name='Автор'
-    )
+        help_text='Группа к которой будет относится пост')
+    author = models.ForeignKey(User,
+                               on_delete=models.CASCADE,
+                               related_name='posts',
+                               verbose_name='Автор')
 
     class Meta:
         verbose_name = 'Alex Posting'
         verbose_name_plural = 'Alex Postings'
-        ordering = ('-pub_date',)
+        ordering = ('-pub_date', )
 
     def __str__(self) -> str:
         return self.text
