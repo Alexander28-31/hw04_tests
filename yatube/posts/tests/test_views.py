@@ -55,7 +55,7 @@ class PagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         test_obj = response.context['page_obj'][0]
         self.assertEqual(test_obj, self.post)
-              
+
     def test_group_list_page_correct_context(self):
         """Проверка списка постов отфильтрованных по группе."""
         response = self.authorized_client.get(
@@ -155,10 +155,10 @@ class PiginatorViewsTest(TestCase):
         ]
         cls.templates2 = [
             reverse('posts:index') + '?page=2',
-            reverse('posts:group_list', kwargs={'slug': cls.group.slug}) +
-            '?page=2',
-            reverse('posts:profile', kwargs={'username': cls.user.username}) +
-            '?page=2'
+            reverse('posts:group_list', kwargs={'slug': cls.group.slug})
+            + '?page=2',
+            reverse('posts:profile', kwargs={'username': cls.user.username})
+            + '?page=2'
         ]
 
     def setUp(self):
