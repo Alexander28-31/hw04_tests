@@ -1,13 +1,12 @@
-from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from ..models import Group, Post
+from posts.models import Group, Post, User
 
-User = get_user_model()
 LIMIT_SIMBOLS = 15
 
 
 class PostModelTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         """Класс для тестирования моедели Post."""
@@ -20,7 +19,8 @@ class PostModelTest(TestCase):
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовая пост',
+            text='Тестовый пост',
+            pub_date='Дата публикации',
         )
 
     def test_post_model_have_correct_object_names(self):
@@ -32,3 +32,28 @@ class PostModelTest(TestCase):
         """Проверяем, что у моделей корректно работает str."""
         group = PostModelTest.group
         self.assertEqual(str(group), group.title)
+
+    def test_verbose_name(self):
+        """verbose_name в полях совпадает с ожидаемым."""
+        post = PostModelTest.post
+        field_verboses = {
+            'text': 'Текст поста',
+            'group': 'Группа',
+        }
+        for value, expected in field_verboses.items():
+            with self.subTest(value=value):
+                self.assertEqual(
+                    post._meta.get_field(value).verbose_name, expected)
+
+    def test_help_text(self):
+        """help_text в полях совпадает с ожидаемым."""
+        post = PostModelTest.post
+        field_help_text = {
+            'text': 'Введите текст поста',
+            'group': 'Группа к которой будет относится пост',
+        }
+        for value, expected in field_help_text.items():
+            print(value)
+            with self.subTest(value=value):
+                self.assertEqual(
+                    post._meta.get_field(value).help_text, expected)

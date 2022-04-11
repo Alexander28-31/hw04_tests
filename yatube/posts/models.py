@@ -8,7 +8,7 @@ Group = 'Group'
 class Post(models.Model):
     """Модель для хранения постов."""
 
-    text = models.TextField(verbose_name='Описание',
+    text = models.TextField(verbose_name='Текст поста',
                             help_text='Введите текст поста')
     pub_date = models.DateTimeField(auto_now_add=True,
                                     verbose_name='Дата публикации')

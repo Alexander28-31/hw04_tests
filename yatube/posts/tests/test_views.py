@@ -1,12 +1,12 @@
 from django import forms
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-from posts.forms import PostForm
-from posts.models import Group, Post
 
-User = get_user_model()
+from posts.forms import PostForm
+from posts.models import Group, Post, User
+
+POSTS_PER_PAGE_3 = 3
 
 
 class PagesTests(TestCase):
@@ -35,13 +35,13 @@ class PagesTests(TestCase):
         templates_pages_name = {
             reverse('posts:index'): 'posts/index.html',
             reverse('posts:group_list', kwargs={'slug': self.group.slug}):
-            'posts/group_list.html',
+                'posts/group_list.html',
             reverse('posts:profile', kwargs={'username': self.user.username}):
-            'posts/profile.html',
+                'posts/profile.html',
             reverse('posts:post_detail', kwargs={'post_id': self.post.id}):
-            'posts/post_detail.html',
+                'posts/post_detail.html',
             reverse('posts:post_edit', kwargs={'post_id': self.post.id}):
-            'posts/post_create.html',
+                'posts/post_create.html',
             reverse('posts:post_create'): 'posts/post_create.html',
         }
 
@@ -55,23 +55,23 @@ class PagesTests(TestCase):
         response = self.authorized_client.get(reverse('posts:index'))
         test_obj = response.context['page_obj'][0]
         self.assertEqual(test_obj, self.post)
-
+              
     def test_group_list_page_correct_context(self):
         """Проверка списка постов отфильтрованных по группе."""
         response = self.authorized_client.get(
             reverse('posts:group_list', kwargs={'slug': self.user.slug}))
         first_object = response.context['page_obj'][0]
         test_title = first_object.group.title
-        test_author = first_object.author
         test_text = first_object.text
-        test_group = first_object.group
         test_descripton = first_object.group.description
+        test_group = first_object.group
+        test_author = first_object.author
         self.assertEqual(first_object, self.post)
         self.assertEqual(test_title, 'test_group')
         self.assertEqual(test_author, self.user)
         self.assertEqual(test_text, 'test_text')
         self.assertEqual(test_group, self.group)
-        self.assertEqual(test_descripton, 'test_description')
+        self.assertEqual(test_descripton, self.group.description)
 
     def test_group_list_page_correct_context(self):
         """Проверка списка постов отфильтрованных по пользователю."""
@@ -86,7 +86,7 @@ class PagesTests(TestCase):
         self.assertEqual(test_title, 'test_group')
         self.assertEqual(test_text, 'test_text')
         self.assertEqual(test_count, len(self.user.posts.all()))
-        self.assertEqual(test_descripton, 'test_description')
+        self.assertEqual(test_descripton, self.group.description)
 
     def test_group_list_page_id_correct_context(self):
         """Проверка одного поста отфильтрованного по id."""
@@ -124,6 +124,9 @@ class PagesTests(TestCase):
             with self.subTest(value=value):
                 form_field = response.context.get('form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
+        is_edit = response.context['is_edit']
+        self.assertTrue('is_edit')
+        self.assertIsInstance(is_edit, bool)
 
     def test_post_in_the_right_group(self):
         """ Проверяем что пост не попал в другую группу """
@@ -145,6 +148,18 @@ class PiginatorViewsTest(TestCase):
             cls.posts = Post.objects.create(author=cls.user,
                                             text=f'{i} Text',
                                             group=cls.group)
+        cls.templates = [
+            reverse('posts:index'),
+            reverse('posts:group_list', kwargs={'slug': cls.group.slug}),
+            reverse('posts:profile', kwargs={'username': cls.user.username})
+        ]
+        cls.templates2 = [
+            reverse('posts:index') + '?page=2',
+            reverse('posts:group_list', kwargs={'slug': cls.group.slug}) +
+            '?page=2',
+            reverse('posts:profile', kwargs={'username': cls.user.username}) +
+            '?page=2'
+        ]
 
     def setUp(self):
         self.authorized_client = Client()
@@ -152,13 +167,16 @@ class PiginatorViewsTest(TestCase):
 
     def test_paginator_correct(self):
         """Проверяет что на странице присутсвует 10 постов."""
-        templates = [
-            reverse('posts:index'),
-            reverse('posts:group_list', kwargs={'slug': 'test_slug'}),
-            reverse('posts:profile', kwargs={'username': self.user.username})
-        ]
-        for i in range(len(templates)):
-            with self.subTest(templates=templates[i]):
-                response = self.authorized_client.get(templates[i])
+        for i in range(len(self.templates)):
+            with self.subTest(templates=self.templates[i]):
+                response = self.authorized_client.get(self.templates[i])
                 self.assertEqual(len(response.context['page_obj']),
                                  settings.POSTS_PER_PAGE)
+
+    def test_paginator_correct_2(self):
+        """Проверяет количество постов на 2ой странице -3."""
+        for i in range(len(self.templates2)):
+            with self.subTest(templates2=self.templates2[i]):
+                response = self.authorized_client.get(self.templates2[i])
+                self.assertEqual(len(response.context['page_obj']),
+                                 POSTS_PER_PAGE_3)
