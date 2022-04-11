@@ -57,8 +57,7 @@ class PostCreateFormTest(TestCase):
             'group': self.group.id,
         }
         response = self.authorized_client.post(reverse(
-            'posts:post_edit', kwargs={'post_id': self.post.id}),
-                                               data=form)
+            'posts:post_edit', kwargs={'post_id': self.post.id}), data=form)
         self.assertEqual(response.status_code, HTTPStatus.FOUND)
         self.post.refresh_from_db()
         self.assertRedirects(
