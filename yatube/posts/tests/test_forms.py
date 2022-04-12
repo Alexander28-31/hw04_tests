@@ -48,7 +48,7 @@ class PostCreateFormTest(TestCase):
 
         self.assertTrue(
             Post.objects.filter(
-                text=self.post.text,
+                text=self.post_edit.text,
             ).exists())
         self.assertEqual(Post.objects.count(), post_count + 1)
 
@@ -57,7 +57,7 @@ class PostCreateFormTest(TestCase):
         post_count = Post.objects.count()
         form = {
             'text': self.post_edit.text,
-            'group': self.post_edit.group,
+            'group': self.post_edit.group.pk,
         }
         response = self.authorized_client.post(reverse(
             'posts:post_edit', kwargs={'post_id': self.post.id}), data=form)
@@ -69,7 +69,8 @@ class PostCreateFormTest(TestCase):
         self.assertTrue(
             Post.objects.filter(
                 text=self.post_edit.text,
-                group=self.post_edit.group,
+                group=self.post.group.pk,
+                author=self.post_edit.author,
             ).exists())
         self.assertEqual(Post.objects.count(), post_count)
 
