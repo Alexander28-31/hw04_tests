@@ -6,7 +6,7 @@ from django.urls import reverse
 from posts.forms import PostForm
 from posts.models import Group, Post, User
 
-POSTS_PER_PAGE_3 = 3
+SECOND_PAGE_PAGINATOR = 3
 
 
 class PagesTests(TestCase):
@@ -29,6 +29,12 @@ class PagesTests(TestCase):
     def setUp(self):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+
+    def chek_post(self, post):
+        self.assertEqual(post.id, self.post.id)
+        self.assertEqual(post.text, self.post.text)
+        self.assertEqual(post.author, self.post.author)
+        self.assertEqual(post.group, self.post.group)
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
@@ -60,33 +66,15 @@ class PagesTests(TestCase):
         """Проверка списка постов отфильтрованных по группе."""
         response = self.authorized_client.get(
             reverse('posts:group_list', kwargs={'slug': self.user.slug}))
-        first_object = response.context['page_obj'][0]
-        test_title = first_object.group.title
-        test_text = first_object.text
-        test_descripton = first_object.group.description
-        test_group = first_object.group
-        test_author = first_object.author
-        self.assertEqual(first_object, self.post)
-        self.assertEqual(test_title, 'test_group')
-        self.assertEqual(test_author, self.user)
-        self.assertEqual(test_text, 'test_text')
-        self.assertEqual(test_group, self.group)
-        self.assertEqual(test_descripton, self.group.description)
+        post = response.context['page_obj'][0]
+        self.chek_post(post)
 
     def test_group_list_page_correct_context(self):
         """Проверка списка постов отфильтрованных по пользователю."""
         response = self.authorized_client.get(
             reverse('posts:profile', kwargs={'username': self.user.username}))
-        first_object = response.context['page_obj'][0]
-        test_title = first_object.group.title
-        test_text = first_object.text
-        test_descripton = first_object.group.description
-        test_count = first_object.author.posts.count()
-        self.assertEqual(first_object, self.post)
-        self.assertEqual(test_title, 'test_group')
-        self.assertEqual(test_text, 'test_text')
-        self.assertEqual(test_count, len(self.user.posts.all()))
-        self.assertEqual(test_descripton, self.group.description)
+        post = response.context['page_obj'][0]
+        self.chek_post(post)
 
     def test_group_list_page_id_correct_context(self):
         """Проверка одного поста отфильтрованного по id."""
@@ -167,16 +155,20 @@ class PiginatorViewsTest(TestCase):
 
     def test_paginator_correct(self):
         """Проверяет что на странице присутсвует 10 постов."""
-        for i in range(len(self.templates)):
-            with self.subTest(templates=self.templates[i]):
-                response = self.authorized_client.get(self.templates[i])
+        for number_of_posts_for_paginator in range(len(self.templates)):
+            with self.subTest(
+                    templates=self.templates[number_of_posts_for_paginator]):
+                response = self.authorized_client.get(
+                    self.templates[number_of_posts_for_paginator])
                 self.assertEqual(len(response.context['page_obj']),
                                  settings.POSTS_PER_PAGE)
 
     def test_paginator_correct_2(self):
         """Проверяет количество постов на 2ой странице -3."""
-        for i in range(len(self.templates2)):
-            with self.subTest(templates2=self.templates2[i]):
-                response = self.authorized_client.get(self.templates2[i])
+        for number_of_posts_on_next_page in range(len(self.templates2)):
+            with self.subTest(
+                    templates2=self.templates2[number_of_posts_on_next_page]):
+                response = self.authorized_client.get(
+                    self.templates2[number_of_posts_on_next_page])
                 self.assertEqual(len(response.context['page_obj']),
-                                 POSTS_PER_PAGE_3)
+                                 SECOND_PAGE_PAGINATOR)

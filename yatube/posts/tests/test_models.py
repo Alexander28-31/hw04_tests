@@ -13,14 +13,14 @@ class PostModelTest(TestCase):
         super().setUpClass()
         cls.user = User.objects.create_user(username='auth')
         cls.group = Group.objects.create(
-            title='Тестовая группа',
+            title='Тестовая группа' * 2,
             slug='Тестовый слаг',
             description='Тестовое описание',
         )
         cls.post = Post.objects.create(
             author=cls.user,
-            text='Тестовый пост',
-            pub_date='Дата публикации',
+            text='Тестовый пост' * 2,
+            group=cls.group,
         )
 
     def test_post_model_have_correct_object_names(self):
@@ -53,7 +53,6 @@ class PostModelTest(TestCase):
             'group': 'Группа к которой будет относится пост',
         }
         for value, expected in field_help_text.items():
-            print(value)
             with self.subTest(value=value):
                 self.assertEqual(
                     post._meta.get_field(value).help_text, expected)

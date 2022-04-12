@@ -13,12 +13,16 @@ class PostModelTest(TestCase):
         cls.user = User.objects.create_user(username='neo')
         cls.user_post = User.objects.create_user(username='neo_post')
         super().setUpClass()
-        cls.group = Group.objects.create(title='test_group',
-                                         slug='test_slug',
-                                         description='test_description')
-        cls.post = Post.objects.create(text='test_text',
-                                       author=cls.user,
-                                       group=cls.group)
+        cls.group = Group.objects.create(
+            title='test_group',
+            slug='test_slug',
+            description='test_description',
+        )
+        cls.post = Post.objects.create(
+            text='test_text',
+            author=cls.user,
+            group=cls.group,
+        )
         cls.templates_url_all = {
             '/': 'posts/index.html',
             f'/group/{cls.group.slug}/': 'posts/group_list.html',
@@ -53,7 +57,6 @@ class PostModelTest(TestCase):
         Страница '/profile/{cls.post.id}/' доступна любому пользователю.
         """
         for addres in self.templates_url_name:
-            print(addres)
             with self.subTest(addres=addres):
                 response = self.guest_client.get(addres)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
@@ -62,10 +65,10 @@ class PostModelTest(TestCase):
         """Страница по адресу /posts/{self.post.pk}/edit/ перенаправит анонимного
         пользователя на страницу логина.
         """
-        response = self.guest_client.get(f'/posts/{self.post.pk}/edit/',
-                                         follow=True)
-        self.assertRedirects(response,
-                             f'/auth/login/?next=/posts/{self.post.pk}/edit/')
+        response = self.guest_client.get(
+            f'/posts/{self.post.pk}/edit/', follow=True)
+        self.assertRedirects(
+            response, f'/auth/login/?next=/posts/{self.post.pk}/edit/')
 
     def test_create_url_redirect_anonymous_on_admin_login(self):
         """Страница по адресу /create/ перенаправит анонимного
@@ -98,7 +101,6 @@ class PostModelTest(TestCase):
         пользователю.
         """
         for addres in self.templates_url_name2:
-            print(addres)
             with self.subTest(addres=addres):
                 response = self.authorized_client.get(addres)
                 self.assertEqual(response.status_code, HTTPStatus.OK)

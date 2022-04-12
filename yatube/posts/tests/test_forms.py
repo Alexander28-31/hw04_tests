@@ -20,6 +20,9 @@ class PostCreateFormTest(TestCase):
         cls.post = Post.objects.create(author=cls.user,
                                        group=cls.group,
                                        text='Text_3')
+        cls.post_edit = Post.objects.create(author=cls.user,
+                                            group=cls.group,
+                                            text='Edit Text')
         cls.form = PostForm()
 
     def setUp(self):
@@ -31,12 +34,14 @@ class PostCreateFormTest(TestCase):
         """Проверка создания нового поста."""
         post_count = Post.objects.count()
         form = {
-            'text': 'Text_3',
+            'text': self.post.text,
             'group': self.group.pk,
         }
-        response = self.authorized_client.post(reverse('posts:post_create'),
-                                               data=form,
-                                               follow=True)
+        response = self.authorized_client.post(
+            reverse('posts:post_create'),
+            data=form,
+            follow=True
+        )
         self.assertRedirects(
             response,
             reverse('posts:profile', kwargs={'username': self.user.username}))
@@ -44,8 +49,6 @@ class PostCreateFormTest(TestCase):
         self.assertTrue(
             Post.objects.filter(
                 text=self.post.text,
-                group=self.post.group,
-                author=self.post.author,
             ).exists())
         self.assertEqual(Post.objects.count(), post_count + 1)
 
@@ -53,8 +56,8 @@ class PostCreateFormTest(TestCase):
         """Проверка редактирования поста."""
         post_count = Post.objects.count()
         form = {
-            'text': 'Text_3',
-            'group': self.group.id,
+            'text': self.post_edit.text,
+            'group': self.post_edit.group,
         }
         response = self.authorized_client.post(reverse(
             'posts:post_edit', kwargs={'post_id': self.post.id}), data=form)
@@ -65,9 +68,8 @@ class PostCreateFormTest(TestCase):
             reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
         self.assertTrue(
             Post.objects.filter(
-                text=self.post.text,
-                group=self.post.group,
-                author=self.post.author,
+                text=self.post_edit.text,
+                group=self.post_edit.group,
             ).exists())
         self.assertEqual(Post.objects.count(), post_count)
 
