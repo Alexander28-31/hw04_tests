@@ -10,7 +10,7 @@ SECOND_PAGE_PAGINATOR = 3
 
 
 class PagesTests(TestCase):
-    
+
     @classmethod
     def setUpClass(cls):
         cls.user = User.objects.create_user(username='leo')
@@ -34,8 +34,6 @@ class PagesTests(TestCase):
         self.assertEqual(post.text, self.post.text)
         self.assertEqual(post.author, self.post.author)
         self.assertEqual(post.group, self.post.group)
-        
-        
 
     def test_pages_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
