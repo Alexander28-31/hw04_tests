@@ -36,6 +36,7 @@ class PostCreateFormTest(TestCase):
         form = {
             'text': self.post.text,
             'group': self.group.pk,
+            'author' : self.post.author,
         }
         response = self.authorized_client.post(
             reverse('posts:post_create'),
@@ -46,11 +47,12 @@ class PostCreateFormTest(TestCase):
             response,
             reverse('posts:profile', kwargs={'username': self.user.username}))
 
-        self.assertTrue(
-            Post.objects.filter(
-                text=self.post_edit.text,
-            ).exists())
-        self.assertEqual(Post.objects.count(), post_count + 1)
+        last_post = Post.objects.first()
+        self.assertEqual(Post.objects.count(),post_count + 1)
+        self.assertEqual(last_post.text, form['text'])
+        self.assertEqual(last_post.group.pk, form['group'])
+        self.assertEqual(last_post.author, form['author'])
+        
 
     def test_eddit_post_success(self):
         """Проверка редактирования поста."""
@@ -58,6 +60,7 @@ class PostCreateFormTest(TestCase):
         form = {
             'text': self.post_edit.text,
             'group': self.post_edit.group.pk,
+            'author' : self.post.author,
         }
         response = self.authorized_client.post(reverse(
             'posts:post_edit', kwargs={'post_id': self.post.id}), data=form)
@@ -66,13 +69,12 @@ class PostCreateFormTest(TestCase):
         self.assertRedirects(
             response,
             reverse('posts:post_detail', kwargs={'post_id': self.post.id}))
-        self.assertTrue(
-            Post.objects.filter(
-                text=self.post_edit.text,
-                group=self.post.group.pk,
-                author=self.post_edit.author,
-            ).exists())
+        last_post = Post.objects.first()
         self.assertEqual(Post.objects.count(), post_count)
+        self.assertEqual(last_post.text, form['text'])
+        self.assertEqual(last_post.group.pk, form['group'])
+        self.assertEqual(last_post.author, form['author'])
+        
 
     def test_form_create_post_unauthorized_user(self):
         """
