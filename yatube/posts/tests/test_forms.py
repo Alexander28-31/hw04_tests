@@ -50,7 +50,6 @@ class PostCreateFormTest(TestCase):
         self.assertEqual(Post.objects.count(), post_count + 1)
         self.assertEqual(last_post.text, form['text'])
         self.assertEqual(last_post.group.pk, form['group'])
-        self.assertEqual(last_post.author, form['author'])
 
     def test_eddit_post_success(self):
         """Проверка редактирования поста."""
@@ -70,7 +69,6 @@ class PostCreateFormTest(TestCase):
         self.assertEqual(Post.objects.count(), post_count)
         self.assertEqual(last_post.text, form['text'])
         self.assertEqual(last_post.group.pk, form['group'])
-        self.assertEqual(last_post.author, form['author'])
 
     def test_form_create_post_unauthorized_user(self):
         """
