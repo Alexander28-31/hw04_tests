@@ -36,7 +36,6 @@ class PostCreateFormTest(TestCase):
         form = {
             'text': self.post.text,
             'group': self.group.pk,
-            'author': self.post.author,
         }
         response = self.authorized_client.post(
             reverse('posts:post_create'),
@@ -59,7 +58,6 @@ class PostCreateFormTest(TestCase):
         form = {
             'text': self.post_edit.text,
             'group': self.post_edit.group.pk,
-            'author': self.post.author,
         }
         response = self.authorized_client.post(reverse(
             'posts:post_edit', kwargs={'post_id': self.post.id}), data=form)
