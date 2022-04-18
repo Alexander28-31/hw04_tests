@@ -10,7 +10,6 @@ SECOND_PAGE_PAGINATOR = 3
 
 
 class PagesTests(TestCase):
-    """Класс тестов для паджинатор."""
 
     @classmethod
     def setUpClass(cls):
@@ -68,6 +67,7 @@ class PagesTests(TestCase):
             reverse('posts:group_list', kwargs={'slug': self.user.slug}))
         post = response.context['page_obj'][0]
         self.chek_post(post)
+        self.assertEqual(self.group, response.context["group"])
 
     def test_group_list_page_correct_context(self):
         """Проверка списка постов отфильтрованных по пользователю."""
@@ -75,13 +75,13 @@ class PagesTests(TestCase):
             reverse('posts:profile', kwargs={'username': self.user.username}))
         post = response.context['page_obj'][0]
         self.chek_post(post)
+        self.assertEqual(self.user, response.context["author"])
 
     def test_group_list_page_id_correct_context(self):
         """Проверка одного поста отфильтрованного по id."""
         response = self.authorized_client.get(
             reverse('posts:post_detail', kwargs={'post_id': 1}))
         self.assertEqual(response.context.get('post').text, self.post.text)
-        self.assertEqual(response.context.get('post').text, 'test_text')
         self.assertEqual(
             response.context.get('post').author.posts.count(),
             len(self.user.posts.all()))

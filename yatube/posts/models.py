@@ -1,3 +1,4 @@
+
 from django.contrib.auth import get_user_model
 from django.db import models
 
@@ -25,6 +26,11 @@ class Post(models.Model):
                                on_delete=models.CASCADE,
                                related_name='posts',
                                verbose_name='Автор')
+    image = models.ImageField(
+        'Картинка',
+        upload_to='posts/',
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'Alex Posting'
@@ -48,3 +54,48 @@ class Group(models.Model):
 
     def __str__(self) -> str:
         return self.title
+
+
+class Comment (models.Model):
+    """Модель для создания  комментариев."""
+    post = models.ForeignKey(
+        Post,
+        related_name='comments',
+        on_delete=models.CASCADE
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='user',
+        on_delete=models.CASCADE
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария',
+        help_text='Напишите текст комментария'
+    )
+    created = models.DateTimeField(
+        'date create',
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self) -> str:
+        return self.text[:15]
+
+
+class Follow (models.Model):
+    """Модель подписки на авторов."""
+    user = models.ForeignKey(
+        User,
+        related_name='follower',
+        on_delete=models.CASCADE
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='following',
+        on_delete=models.CASCADE
+    )
+
+    class Meta:
+        ordering = ('-author',)

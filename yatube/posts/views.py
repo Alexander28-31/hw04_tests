@@ -1,7 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.cache import cache_page
 
-from .forms import PostForm
+from .forms import CommentForm, PostForm
 from .models import Group, Post, User
 from .utils import get_page_pages
 
@@ -37,36 +38,87 @@ def profile(request, username):
 
 def post_detail(request, post_id):
     """Выводит информацию о посте."""
+    form = CommentForm()
     post = get_object_or_404(Post.objects.select_related(
     ), id=post_id)
     context = {
         'post': post,
+        'form': form,
     }
     return render(request, 'posts/post_detail.html', context)
 
 
-@ login_required
+@login_required
 def post_create(request):
     """Создания новго поста."""
-    form = PostForm(request.POST or None)
+    form = PostForm(request.POST or None,
+                    files=request.FILES or None)
     if form.is_valid():
         post = form.save(commit=False)
         post.author = request.user
         form.save()
         return redirect('posts:profile', request.user)
-    return render(request, 'posts/post_create.html', {'form': form})
+    context = {
+        'form': form,
+    }
+    return render(request, 'posts/post_create.html', context)
 
 
-@ login_required
+@login_required
 def post_edit(request, post_id):
     """Редактирование поста."""
     post = get_object_or_404(Post, id=post_id)
-    is_edit = True
     if post.author != request.user:
         return redirect('posts:post_detail', post.pk)
-    form = PostForm(request.POST or None, instance=post)
+    form = PostForm(request.POST or None,
+                    files=request.FILES or None, instance=post)
     if form.is_valid():
         form.save()
         return redirect('posts:post_detail', post_id=post_id)
-    return render(request, 'posts/post_create.html', {'form': form,
-                                                      'is_edit': is_edit})
+    context = {
+        'form': form,
+        'is_edit': True,
+        'post': post,
+    }
+    return render(request, 'posts/post_create.html', context)
+
+
+@login_required
+def add_comment(request, post_id):
+    """Получение поста."""
+    post = get_object_or_404(Post, id=post_id)
+    post_comments = post.comments.all()
+    form = CommentForm(request.POST or None)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.author = request.user
+        comment.post = post
+        comment.save()
+        return redirect('posts:post_detail', post_id=post_id)
+    context = {
+        'form': form,
+        'post': post,
+    }
+    return render(request, 'posts:post_detail', context)
+
+
+@login_required
+def follow_index(request):
+    """Информация о текущем пользователе доступа."""
+    post = Post.objects.select_related("autho").filter(
+        author__following__uesr=request.user)
+    page_obj = get_page_pages(request, post)
+    context = {
+        'page_obj': page_obj
+    }
+    return render(request, 'posts/follow.html', context)
+
+
+@login_required
+def profile_follow(request, uername):
+    """Подписаться на автора."""
+
+
+@login_required
+def profile_unfollow(request, uername):
+    """Дизлайк,отписка."""
