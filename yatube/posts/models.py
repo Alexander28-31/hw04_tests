@@ -56,7 +56,7 @@ class Group(models.Model):
         return self.title
 
 
-class Comment (models.Model):
+class Comment(models.Model):
     """Модель для создания  комментариев."""
     post = models.ForeignKey(
         Post,
@@ -84,7 +84,7 @@ class Comment (models.Model):
         return self.text[:15]
 
 
-class Follow (models.Model):
+class Follow(models.Model):
     """Модель подписки на авторов."""
     user = models.ForeignKey(
         User,
@@ -98,4 +98,11 @@ class Follow (models.Model):
     )
 
     class Meta:
-        ordering = ('-author',)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'user'],
+                name='unique_follower')
+        ]
+
+    def __str__(self):
+        return f"{self.author}, follower:{self.user}"
